@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ArrowRight, ArrowLeft, BarChart3, Plus, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,30 +88,41 @@ function createDefaultTool(): ToolInput {
 export default function AuditPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [teamSize, setTeamSize] = useState(1);
-  const [useCase, setUseCase] = useState<UseCase>("coding");
-  const [tools, setTools] = useState<ToolInput[]>([createDefaultTool()]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const [teamSize, setTeamSize] = useState<number>(() => {
+    if (typeof window === "undefined") return 1;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed: AuditFormData = JSON.parse(saved);
-        setTeamSize(parsed.teamSize);
-        setUseCase(parsed.useCase);
-        setTools(parsed.tools);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
+      if (saved) return (JSON.parse(saved) as AuditFormData).teamSize ?? 1;
+    } catch { /* ignore */ }
+    return 1;
+  });
+
+  const [useCase, setUseCase] = useState<UseCase>(() => {
+    if (typeof window === "undefined") return "coding";
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return (JSON.parse(saved) as AuditFormData).useCase ?? "coding";
+    } catch { /* ignore */ }
+    return "coding";
+  });
+
+  const [tools, setTools] = useState<ToolInput[]>(() => {
+    if (typeof window === "undefined") return [createDefaultTool()];
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return (JSON.parse(saved) as AuditFormData).tools ?? [createDefaultTool()];
+    } catch { /* ignore */ }
+    return [createDefaultTool()];
+  });
 
   useEffect(() => {
     const data: AuditFormData = { teamSize, useCase, tools };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [teamSize, useCase, tools]);
+
 
   function updateTool(index: number, field: keyof ToolInput, value: string | number) {
     setTools((prev) =>
@@ -167,9 +179,9 @@ export default function AuditPage() {
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
             <BarChart3 className="w-3.5 h-3.5 text-white" />
           </div>
-          <a href="/" className="text-white font-bold text-base tracking-tight">
+          <Link href="/" className="text-white font-bold text-base tracking-tight">
             SpendLens
-          </a>
+          </Link>
         </div>
 
         <div className="flex items-center gap-2 mb-8">
@@ -275,7 +287,7 @@ export default function AuditPage() {
               Your AI tools
             </h1>
             <p className="text-slate-400 mb-8">
-              Add every tool you're paying for. Enter your actual monthly spend
+              Add every tool you&apos;re paying for. Enter your actual monthly spend
               from the invoice.
             </p>
 
@@ -402,7 +414,7 @@ export default function AuditPage() {
               Review your audit
             </h1>
             <p className="text-slate-400 mb-8">
-              Confirm your details, then we'll run the analysis.
+              Confirm your details, then we&apos;ll run the analysis.
             </p>
 
             <Card className="mb-4">

@@ -288,7 +288,7 @@ export default function HomePage() {
                 </span>
               </div>
               <p className="text-slate-300 text-sm leading-relaxed">
-                If your audit shows &gt;$500/mo in savings, we'll let you know
+                If your audit shows &gt;$500/mo in savings, we&apos;ll let you know
                 that Credex sells the same AI credits at up to 60% off retail.
                 No pressure. The audit is useful either way.
               </p>
@@ -324,7 +324,7 @@ export default function HomePage() {
                   ))}
                 </div>
                 <p className="text-slate-300 text-sm leading-relaxed mb-6 flex-1">
-                  "{t.quote}"
+                  &ldquo;{t.quote}&rdquo;
                 </p>
                 <div className="flex items-center justify-between">
                   <div>
