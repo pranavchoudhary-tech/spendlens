@@ -30,15 +30,15 @@
 
 ## Day 3 — 2026-05-24
 
-**Hours worked:** 6
+**Hours worked:** 4
 
-**What I did:** Built the results page in two parts: a server component (`page.tsx`) that handles `generateMetadata` for OG tags, and a client component (`results-client.tsx`) for all interactive elements. Wired up the AI summary API with Anthropic Claude Haiku and the templated fallback. Added the Credex consultation CTA that only appears for >$500/mo savings audits. Built the OG image endpoint as an SVG route. Tested the shareable URL in incognito and confirmed no PII appears in the public record.
+**What I did:** Added duplicate tool detection to the audit engine — a new `detectDuplicateTools()` function that identifies when teams are paying for overlapping tools (e.g. Cursor + GitHub Copilot + Windsurf, or Claude + ChatGPT). These warnings now appear as amber banners on the results page above the per-tool breakdown. Added a monthly/annual savings toggle to the results hero so users can see their number both ways. Added a Gemini-to-Cursor cross-tool recommendation for coding use cases. Extended the test suite from 8 to 11 tests covering the new duplicate detection logic and the Gemini case. Also added loading skeleton pages for both `/audit` and `/results/[id]`, plus a custom not-found page for expired or invalid audit IDs.
 
-**What I learned:** The `generateMetadata` function in Next.js runs at request time on the server, which means it can fetch the audit data and return dynamic OG tags per result — exactly what's needed for the share feature to work with Twitter cards.
+**What I learned:** The duplicate tool pattern is one of the most common real waste scenarios — teams accumulate tools over time without ever doing a consolidation review. Making this a first-class warning (separate from per-tool recommendations) gives it the visibility it deserves.
 
-**Blockers / what I'm stuck on:** The Anthropic API call adds ~800ms to the summary load. Moved it to a separate async client-side fetch so the results page renders instantly and the summary appears when ready.
+**Blockers / what I'm stuck on:** No blockers. The toggle between monthly/annual savings is a small UX touch that makes the annual number more visceral — most people respond more strongly to "you're wasting $3,600/year" than "$300/month".
 
-**Plan for tomorrow:** Build the lead capture API, Resend email integration, write the CI workflow, and start on the markdown documentation files.
+**Plan for tomorrow:** Deploy to Vercel, add the live URL to README, take screenshots for documentation.
 
 ---
 

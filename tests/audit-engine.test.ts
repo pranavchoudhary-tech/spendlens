@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { auditTool, runAudit } from "@/lib/audit-engine";
+import { auditTool, runAudit, detectDuplicateTools } from "@/lib/audit-engine";
 import { ToolInput } from "@/lib/types";
 
 describe("auditTool", () => {
@@ -16,7 +16,6 @@ describe("auditTool", () => {
     expect(result.isOptimal).toBe(false);
     expect(result.monthlySavings).toBeGreaterThan(0);
     expect(result.annualSavings).toBe(result.monthlySavings * 12);
-
   });
 
   it("marks Cursor Pro for a solo developer as optimal for coding use case", () => {
@@ -112,5 +111,44 @@ describe("auditTool", () => {
 
     expect(result.recommendations).toHaveLength(1);
     expect(result.recommendations[0].toolName).toBe("Claude");
+  });
+
+  it("detects duplicate coding tools and returns an overlap warning", () => {
+    const tools: ToolInput[] = [
+      { toolId: "cursor", plan: "Pro", monthlySpend: 20, seats: 1 },
+      { toolId: "github_copilot", plan: "Individual", monthlySpend: 10, seats: 1 },
+      { toolId: "windsurf", plan: "Pro", monthlySpend: 15, seats: 1 },
+    ];
+
+    const warnings = detectDuplicateTools(tools);
+
+    expect(warnings.length).toBeGreaterThan(0);
+    expect(warnings[0]).toContain("overlap");
+  });
+
+  it("detects duplicate chat tools (Claude + ChatGPT) and warns about consolidation", () => {
+    const tools: ToolInput[] = [
+      { toolId: "claude", plan: "Pro", monthlySpend: 20, seats: 1 },
+      { toolId: "chatgpt", plan: "Plus", monthlySpend: 20, seats: 1 },
+    ];
+
+    const warnings = detectDuplicateTools(tools);
+
+    expect(warnings.length).toBeGreaterThan(0);
+    expect(warnings[0]).toContain("Claude");
+  });
+
+  it("recommends Cursor over Gemini for a coding use case", () => {
+    const tool: ToolInput = {
+      toolId: "gemini",
+      plan: "Advanced",
+      monthlySpend: 24,
+      seats: 1,
+    };
+
+    const result = auditTool(tool, 1, "coding");
+
+    expect(result.isOptimal).toBe(false);
+    expect(result.recommendedAction).toContain("Cursor");
   });
 });

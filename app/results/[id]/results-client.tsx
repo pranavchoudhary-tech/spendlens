@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatCurrency, formatAnnual } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 
 interface Recommendation {
   toolName: string;
@@ -35,6 +35,7 @@ interface AuditData {
   total_monthly_savings: number;
   total_annual_savings: number;
   recommendations: Recommendation[];
+  duplicate_warnings?: string[];
   use_case: string;
   team_size: number;
   ai_summary: string;
@@ -49,6 +50,7 @@ interface ResultsClientProps {
 export default function ResultsClient({ audit, auditId }: ResultsClientProps) {
   const [aiSummary, setAiSummary] = useState<string>(audit.ai_summary);
   const [summaryLoading, setSummaryLoading] = useState(!audit.ai_summary);
+  const [showAnnual, setShowAnnual] = useState(false);
   const [copied, setCopied] = useState(false);
   const [email, setEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -56,6 +58,11 @@ export default function ResultsClient({ audit, auditId }: ResultsClientProps) {
   const [leadSubmitting, setLeadSubmitting] = useState(false);
   const [leadSubmitted, setLeadSubmitted] = useState(false);
   const [leadError, setLeadError] = useState<string | null>(null);
+
+  const displaySavings = showAnnual
+    ? audit.total_annual_savings
+    : audit.total_monthly_savings;
+  const displaySuffix = showAnnual ? "/yr" : "/mo";
 
   const isHighSavings = audit.total_monthly_savings > 500;
   const isOptimal = audit.total_monthly_savings < 100;
@@ -195,19 +202,51 @@ export default function ResultsClient({ audit, auditId }: ResultsClientProps) {
               <p className="text-slate-400 mb-2">You could be saving</p>
               <h1 className="text-5xl md:text-7xl font-bold savings-number mb-2">
                 <span className="gradient-text">
-                  {formatCurrency(audit.total_monthly_savings)}
+                  {formatCurrency(displaySavings)}
                 </span>
-                <span className="text-2xl text-slate-400 font-normal">/mo</span>
+                <span className="text-2xl text-slate-400 font-normal">{displaySuffix}</span>
               </h1>
-              <p className="text-slate-400 text-lg">
-                <span className="text-white font-semibold">
-                  {formatAnnual(audit.total_monthly_savings)}
-                </span>{" "}
-                per year
-              </p>
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <button
+                  id="toggle-monthly"
+                  onClick={() => setShowAnnual(false)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    !showAnnual
+                      ? "bg-teal-400 text-navy-950"
+                      : "bg-white/5 text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  id="toggle-annual"
+                  onClick={() => setShowAnnual(true)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    showAnnual
+                      ? "bg-teal-400 text-navy-950"
+                      : "bg-white/5 text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Annual
+                </button>
+              </div>
             </div>
           )}
         </div>
+
+        {audit.duplicate_warnings && audit.duplicate_warnings.length > 0 && (
+          <div className="mb-8 space-y-2">
+            {audit.duplicate_warnings.map((warning, i) => (
+              <div
+                key={i}
+                className="flex items-start gap-3 p-4 rounded-xl border border-amber-400/20 bg-amber-400/5"
+              >
+                <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-amber-200/80 text-sm leading-relaxed">{warning}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {aiSummary || summaryLoading ? (
           <div className="mb-8 p-5 rounded-2xl border border-white/8 bg-[#0d1424]">

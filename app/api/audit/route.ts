@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No tools provided" }, { status: 400 });
     }
 
-    const { recommendations, totalMonthlySavings, totalAnnualSavings } = runAudit(body);
+    const { recommendations, totalMonthlySavings, totalAnnualSavings, duplicateWarnings } = runAudit(body);
 
     const id = nanoid(10);
 
@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
       team_size: body.teamSize,
       use_case: body.useCase,
       recommendations,
+      duplicate_warnings: duplicateWarnings,
       total_monthly_savings: totalMonthlySavings,
       total_annual_savings: totalAnnualSavings,
       ai_summary: "",
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ id, totalMonthlySavings, totalAnnualSavings });
+    return NextResponse.json({ id, totalMonthlySavings, totalAnnualSavings, duplicateWarnings });
   } catch (err) {
     console.error("Audit error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

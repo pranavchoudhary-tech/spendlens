@@ -132,6 +132,18 @@ function getCrossToolAlternative(
     }
   }
 
+  if (toolId === "gemini" && useCase === "coding") {
+    const cursorCost = 20 * seats;
+    const savings = currentSpend - cursorCost;
+    if (savings > 0) {
+      return {
+        toolName: "Cursor Pro",
+        estimatedSavings: savings,
+        reason: `Gemini is a general-purpose model. Cursor Pro at $20/user is purpose-built for coding with repo context, inline edits, and tab completion — better fit for your use case.`,
+      };
+    }
+  }
+
   return null;
 }
 
@@ -229,10 +241,47 @@ export function auditTool(tool: ToolInput, teamSize: number, useCase: UseCase): 
   };
 }
 
+export function detectDuplicateTools(tools: ToolInput[]): string[] {
+  const warnings: string[] = [];
+
+  const codingTools = tools.filter((t) =>
+    ["cursor", "github_copilot", "windsurf"].includes(t.toolId) && t.monthlySpend > 0
+  );
+  if (codingTools.length >= 2) {
+    const names = codingTools.map((t) => TOOL_NAMES[t.toolId]).join(" + ");
+    warnings.push(`You're paying for ${names} — these overlap heavily. Most teams pick one AI coding assistant.`);
+  }
+
+  const chatTools = tools.filter((t) =>
+    ["claude", "chatgpt"].includes(t.toolId) && t.monthlySpend > 0
+  );
+  if (chatTools.length >= 2) {
+    const names = chatTools.map((t) => TOOL_NAMES[t.toolId]).join(" + ");
+    warnings.push(`You're paying for both ${names}. Their capabilities overlap ~80% — consider consolidating to one.`);
+  }
+
+  const apiAndUi = tools.filter((t) =>
+    ["anthropic_api", "claude"].includes(t.toolId) && t.monthlySpend > 0
+  );
+  if (apiAndUi.length === 2) {
+    warnings.push(`You're paying for both Claude (UI) and Anthropic API. If your team only needs chat, the UI plan is cheaper. If building products, the API alone is sufficient.`);
+  }
+
+  const openAiAndChat = tools.filter((t) =>
+    ["openai_api", "chatgpt"].includes(t.toolId) && t.monthlySpend > 0
+  );
+  if (openAiAndChat.length === 2) {
+    warnings.push(`You're paying for both ChatGPT and OpenAI API. If your team only needs chat, ChatGPT Plus is cheaper. If building products, the API alone is sufficient.`);
+  }
+
+  return warnings;
+}
+
 export function runAudit(data: AuditFormData): {
   recommendations: ToolRecommendation[];
   totalMonthlySavings: number;
   totalAnnualSavings: number;
+  duplicateWarnings: string[];
 } {
   const recommendations = data.tools
     .filter((t) => t.monthlySpend > 0)
@@ -243,9 +292,12 @@ export function runAudit(data: AuditFormData): {
     0
   );
 
+  const duplicateWarnings = detectDuplicateTools(data.tools);
+
   return {
     recommendations,
     totalMonthlySavings,
     totalAnnualSavings: totalMonthlySavings * 12,
+    duplicateWarnings,
   };
 }
