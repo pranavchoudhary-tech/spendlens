@@ -14,7 +14,7 @@ SpendLens is a free AI spend audit tool for startup founders and engineering man
 
 ## Live URL
 
-> _Add your Vercel deployment URL here before submission._
+**[https://spendlens-cyan.vercel.app](https://spendlens-cyan.vercel.app)**
 
 ## Quick Start
 
