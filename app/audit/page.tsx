@@ -184,23 +184,23 @@ export default function AuditPage() {
           </Link>
         </div>
 
-        <div className="flex items-center gap-2 mb-8">
+        <div className="flex items-center gap-2 mb-3">
           {[1, 2, 3].map((s) => (
             <div key={s} className="flex items-center gap-2">
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
                   s === step
-                    ? "bg-teal-400 text-navy-950"
+                    ? "bg-teal-400 text-[#060c18]"
                     : s < step
                     ? "bg-teal-400/30 text-teal-400"
                     : "bg-white/10 text-slate-500"
                 }`}
               >
-                {s}
+                {s < step ? "✓" : s}
               </div>
               {s < 3 && (
                 <div
-                  className={`h-px w-12 transition-all duration-300 ${
+                  className={`h-px w-12 transition-all duration-500 ${
                     s < step ? "bg-teal-400/50" : "bg-white/10"
                   }`}
                 />
@@ -212,6 +212,12 @@ export default function AuditPage() {
             {step === 2 && "AI tools"}
             {step === 3 && "Review"}
           </span>
+        </div>
+        <div className="w-full h-1 bg-white/5 rounded-full mb-8 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-teal-400 to-teal-300 rounded-full transition-all duration-500"
+            style={{ width: `${((step - 1) / 2) * 100}%` }}
+          />
         </div>
 
         {step === 1 && (

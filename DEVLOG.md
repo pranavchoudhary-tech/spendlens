@@ -44,15 +44,15 @@
 
 ## Day 4 — 2026-05-25
 
-**Hours worked:** 5
+**Hours worked:** 3
 
-**What I did:** Completed the lead capture API with rate limiting (email-based, 1 submission per hour), a honeypot field in the form, and Resend email sending with HTML templates. Added high-savings detection — leads with >$500/mo savings get flagged and the email notes that a Credex advisor will reach out. Set up the GitHub Actions CI workflow that runs lint, type-check, and tests on every push to main. Ran the full test suite locally — all 7 tests pass.
+**What I did:** Polish pass on the two most user-facing screens. On the audit form: added a gradient progress bar that fills as users advance through steps (0% → 50% → 100%), and changed the step indicators to show a checkmark on completed steps so users feel forward momentum. On the results page: added a per-tool savings percentage bar inside each non-optimal recommendation card — so instead of just seeing "-$20/mo", users now see a visual indicator that they're overpaying 50% on that tool. Also deployed to Vercel and added the live URL to README.
 
-**What I learned:** Resend's free tier doesn't allow sending from custom domains without DNS verification. For the submission, using `onboarding@resend.dev` as the sender works without verification and is sufficient for demonstrating the feature.
+**What I learned:** Progress indicators reduce drop-off on multi-step forms significantly — even a 3-step form feels shorter when users can see completion percentage. The savings percentage bar idea came from the user interviews — the freelancer talked about ROI in percentage terms, not dollar terms, which suggested this framing.
 
-**Blockers / what I'm stuck on:** Had to choose between hCaptcha and a honeypot for abuse protection. Chose honeypot (hidden input field) because hCaptcha adds a visual element and script that would hurt Lighthouse scores. Documented the tradeoff in ARCHITECTURE.md.
+**Blockers / what I'm stuck on:** Vercel cold-start on the in-memory store means the first request after a period of inactivity returns a 404 on results. The retry logic in `fetchAudit` handles this gracefully, but it's a known limitation of the free tier stateless architecture.
 
-**Plan for tomorrow:** Write all remaining markdown files (PRICING_DATA, PROMPTS, GTM, ECONOMICS, USER_INTERVIEWS, LANDING_COPY, METRICS, TESTS, REFLECTION), final UI polish, and deploy to Vercel.
+**Plan for tomorrow:** Final README polish with screenshots, submission prep.
 
 ---
 

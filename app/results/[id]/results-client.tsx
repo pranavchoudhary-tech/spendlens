@@ -323,9 +323,28 @@ export default function ResultsClient({ audit, auditId }: ResultsClientProps) {
                 </div>
 
                 {!rec.isOptimal && (
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-teal-400">
-                    <ArrowRight className="w-3 h-3" />
-                    {rec.recommendedAction}
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                      <span>Potential saving</span>
+                      <span className="text-teal-400 font-semibold">
+                        {Math.round((rec.monthlySavings / rec.currentSpend) * 100)}%
+                      </span>
+                    </div>
+                    <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-teal-400 to-teal-300 rounded-full"
+                        style={{
+                          width: `${Math.min(
+                            Math.round((rec.monthlySavings / rec.currentSpend) * 100),
+                            100
+                          )}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-teal-400 mt-2">
+                      <ArrowRight className="w-3 h-3" />
+                      {rec.recommendedAction}
+                    </div>
                   </div>
                 )}
               </div>
