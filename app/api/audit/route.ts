@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ id, totalMonthlySavings, totalAnnualSavings, duplicateWarnings });
+    return NextResponse.json(auditRecord);
   } catch (err) {
     console.error("Audit error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

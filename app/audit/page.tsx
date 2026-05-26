@@ -161,7 +161,15 @@ export default function AuditPage() {
         throw new Error("Failed to run audit. Please try again.");
       }
 
-      const { id } = await response.json();
+      const auditData = await response.json();
+      const { id } = auditData;
+      
+      try {
+        localStorage.setItem(`spendlens_audit_${id}`, JSON.stringify(auditData));
+      } catch (err) {
+        console.error("Failed to save audit result in localStorage:", err);
+      }
+
       localStorage.removeItem(STORAGE_KEY);
       router.push(`/results/${id}`);
     } catch (err) {

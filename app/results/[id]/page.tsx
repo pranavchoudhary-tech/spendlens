@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
 import ResultsClient from "./results-client";
 
 interface AuditData {
@@ -96,9 +95,5 @@ export default async function ResultsPage({
   const { id } = await params;
   const audit = await fetchAudit(id);
 
-  if (!audit) {
-    notFound();
-  }
-
-  return <ResultsClient audit={audit} auditId={id} />;
+  return <ResultsClient initialAudit={audit} auditId={id} />;
 }

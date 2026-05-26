@@ -43,13 +43,18 @@ interface AuditData {
 }
 
 interface ResultsClientProps {
-  audit: AuditData;
+  initialAudit: AuditData | null;
   auditId: string;
 }
 
-export default function ResultsClient({ audit, auditId }: ResultsClientProps) {
-  const [aiSummary, setAiSummary] = useState<string>(audit.ai_summary);
-  const [summaryLoading, setSummaryLoading] = useState(!audit.ai_summary);
+export default function ResultsClient({ initialAudit, auditId }: ResultsClientProps) {
+  const [audit, setAudit] = useState<AuditData | null>(initialAudit);
+  const [checkingLocal, setCheckingLocal] = useState(!initialAudit);
+  const [notFoundState, setNotFoundState] = useState(false);
+
+  const [aiSummary, setAiSummary] = useState<string>(initialAudit?.ai_summary ?? "");
+  const [summaryLoading, setSummaryLoading] = useState(initialAudit ? !initialAudit.ai_summary : false);
+
   const [showAnnual, setShowAnnual] = useState(false);
   const [copied, setCopied] = useState(false);
   const [email, setEmail] = useState("");
@@ -59,22 +64,35 @@ export default function ResultsClient({ audit, auditId }: ResultsClientProps) {
   const [leadSubmitted, setLeadSubmitted] = useState(false);
   const [leadError, setLeadError] = useState<string | null>(null);
 
-  const displaySavings = showAnnual
-    ? audit.total_annual_savings
-    : audit.total_monthly_savings;
-  const displaySuffix = showAnnual ? "/yr" : "/mo";
+  useEffect(() => {
+    if (initialAudit) return;
 
-  const isHighSavings = audit.total_monthly_savings > 500;
-  const isOptimal = audit.total_monthly_savings < 100;
-  const shareUrl =
-    typeof window !== "undefined"
-      ? window.location.href
-      : `https://spendlens.vercel.app/results/${auditId}`;
+    const timer = setTimeout(() => {
+      try {
+        const stored = localStorage.getItem(`spendlens_audit_${auditId}`);
+        if (stored) {
+          const parsed: AuditData = JSON.parse(stored);
+          setAudit(parsed);
+          setAiSummary(parsed.ai_summary);
+          setSummaryLoading(!parsed.ai_summary);
+        } else {
+          setNotFoundState(true);
+        }
+      } catch {
+        setNotFoundState(true);
+      } finally {
+        setCheckingLocal(false);
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [initialAudit, auditId]);
 
   useEffect(() => {
-    if (audit.ai_summary) return;
+    if (!audit || audit.ai_summary || aiSummary) return;
 
     async function fetchSummary() {
+      if (!audit) return;
       setSummaryLoading(true);
       try {
         const res = await fetch("/api/summary", {
@@ -90,6 +108,12 @@ export default function ResultsClient({ audit, auditId }: ResultsClientProps) {
         if (res.ok) {
           const { summary } = await res.json();
           setAiSummary(summary);
+          try {
+            const updatedAudit = { ...audit, ai_summary: summary };
+            localStorage.setItem(`spendlens_audit_${auditId}`, JSON.stringify(updatedAudit));
+          } catch (e) {
+            console.error("Failed to update stored summary:", e);
+          }
         }
       } catch {
         /* fallback stays blank */
@@ -99,7 +123,19 @@ export default function ResultsClient({ audit, auditId }: ResultsClientProps) {
     }
 
     fetchSummary();
-  }, [audit]);
+  }, [audit, auditId, aiSummary]);
+
+  const displaySavings = audit
+    ? (showAnnual ? audit.total_annual_savings : audit.total_monthly_savings)
+    : 0;
+  const displaySuffix = showAnnual ? "/yr" : "/mo";
+
+  const isHighSavings = audit ? audit.total_monthly_savings > 500 : false;
+  const isOptimal = audit ? audit.total_monthly_savings < 100 : false;
+  const shareUrl =
+    typeof window !== "undefined"
+      ? window.location.href
+      : `https://spendlens.vercel.app/results/${auditId}`;
 
   async function handleCopyLink() {
     await navigator.clipboard.writeText(shareUrl);
@@ -109,7 +145,7 @@ export default function ResultsClient({ audit, auditId }: ResultsClientProps) {
 
   async function handleLeadSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email) return;
+    if (!email || !audit) return;
     setLeadSubmitting(true);
     setLeadError(null);
 
@@ -137,6 +173,48 @@ export default function ResultsClient({ audit, auditId }: ResultsClientProps) {
     } finally {
       setLeadSubmitting(false);
     }
+  }
+
+  if (checkingLocal) {
+    return (
+      <div className="min-h-screen bg-[#060c18] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-10 h-10 text-teal-400 animate-spin" />
+          <p className="text-slate-400 text-sm">Loading your audit results...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (notFoundState || !audit) {
+    return (
+      <div className="min-h-screen bg-[#060c18] flex flex-col items-center justify-center px-4">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-8 h-8 text-red-400" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-extrabold text-white tracking-tight">Audit Not Found</h1>
+            <p className="text-slate-400 text-sm max-w-sm mx-auto leading-relaxed">
+              This audit link may have expired or is incorrect. Audit results are stored for 90 days.
+            </p>
+          </div>
+          <div>
+            <Link href="/audit">
+              <Button className="w-full shadow-lg shadow-teal-500/20 bg-gradient-to-r from-teal-400 to-teal-500 hover:from-teal-500 hover:to-teal-600 text-slate-950 font-semibold h-11">
+                Run a New Audit
+                <ArrowRight className="w-4 h-4 ml-1.5" />
+              </Button>
+            </Link>
+          </div>
+          <div className="text-xs text-slate-600">
+            <Link href="/" className="hover:text-slate-400 transition-colors">
+              ← Back to SpendLens
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
