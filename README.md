@@ -4,13 +4,15 @@ SpendLens is a free AI spend audit tool for startup founders and engineering man
 
 ## Screenshots
 
-> _Add 3+ screenshots or a Loom/YouTube recording link here before submission._
+Here are the screenshots of SpendLens in action:
 
-<!-- Example:
-![Landing page](./docs/screenshots/landing.png)
-![Audit form](./docs/screenshots/form.png)
-![Results page](./docs/screenshots/results.png)
--->
+| Screen | Preview |
+|---|---|
+| **Landing Page** | ![Landing Page](./public/screenshots/landing.jpg) |
+| **Audit Form** | ![Audit Form](./public/screenshots/form.jpg) |
+| **Results Breakdown** | ![Results Page](./public/screenshots/results.jpg) |
+| **Vercel Setup** | ![Vercel Setup](./public/screenshots/vercel_deployment_1.jpg) |
+
 
 ## Live URL
 
