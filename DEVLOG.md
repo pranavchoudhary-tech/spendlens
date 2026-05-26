@@ -60,7 +60,7 @@
 
 **Hours worked:** 7
 
-**What I did:** Wrote all 12 required markdown files. Ran Lighthouse on the deployed URL — Performance: 91, Accessibility: 95, Best Practices: 92. Final polish pass: improved mobile layout on the results page, fixed a color contrast issue on the step indicator, added proper `aria-label` attributes to icon-only buttons. Deployed to Vercel with all environment variables configured. Verified the shareable URL works in incognito. Confirmed git log shows commits on 5 distinct days.
+**What I did:** Wrote all 12 required markdown files. Ran Lighthouse on the deployed URL — Performance: 91, Accessibility: 95, Best Practices: 92. Designed and built the Industry Benchmark Comparison Card on the results page, dynamically calculating per-user AI spend and comparing it against startup averages with a beautiful gradient sliding gauge. Final polish pass: improved mobile layout on the results page, fixed a color contrast issue on the step indicator, added proper `aria-label` attributes to icon-only buttons. Deployed to Vercel with all environment variables configured. Verified the shareable URL works in incognito. Confirmed git log shows commits on 5 distinct days.
 
 **What I learned:** Lighthouse docks mobile performance points for render-blocking fonts. Switching from `font-display: auto` to `font-display: swap` in the Geist font import improved the Performance score by 6 points.
 

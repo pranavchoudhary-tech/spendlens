@@ -175,6 +175,33 @@ export default function ResultsClient({ initialAudit, auditId }: ResultsClientPr
     }
   }
 
+  // Benchmark calculations
+  const currentTotalSpend = audit?.recommendations.reduce((sum, r) => sum + r.currentSpend, 0) ?? 0;
+  const currentPerUserSpend = audit && audit.team_size > 0 ? (currentTotalSpend / audit.team_size) : 0;
+  
+  // Determine status and text
+  let statusText = "Lean & Optimized";
+  let statusColor = "text-teal-400 border-teal-400/20 bg-teal-400/5";
+  let explanation = "";
+  let indicatorPercentage = 0;
+
+  if (currentPerUserSpend <= 45) {
+    statusText = "Lean & Optimized";
+    statusColor = "text-teal-400 border-teal-400/20 bg-teal-400/5";
+    explanation = `Outstanding! Your average AI spend of ${formatCurrency(currentPerUserSpend)}/user/mo is exceptionally lean, beating the industry average of $75/user/mo for startups.`;
+    indicatorPercentage = Math.min(30, (currentPerUserSpend / 45) * 30);
+  } else if (currentPerUserSpend <= 95) {
+    statusText = "Average Spend";
+    statusColor = "text-amber-400 border-amber-400/20 bg-amber-400/5";
+    explanation = `Your average AI spend of ${formatCurrency(currentPerUserSpend)}/user/mo is right around the industry standard. Upgrading to our recommended plan downgrades will lower this to a highly optimized ${formatCurrency(audit && audit.team_size > 0 ? ((currentTotalSpend - audit.total_monthly_savings) / audit.team_size) : 40)}/user/mo.`;
+    indicatorPercentage = 30 + ((currentPerUserSpend - 45) / 50) * 40;
+  } else {
+    statusText = "Over-provisioned";
+    statusColor = "text-rose-400 border-rose-400/20 bg-rose-400/5";
+    explanation = `Your average AI spend of ${formatCurrency(currentPerUserSpend)}/user/mo puts you in the top 15% of high spenders. This usually indicates redundant tool subscriptions or unused Business licenses. Let's fix this!`;
+    indicatorPercentage = Math.min(100, 70 + ((currentPerUserSpend - 95) / 105) * 30);
+  }
+
   if (checkingLocal) {
     return (
       <div className="min-h-screen bg-[#060c18] flex items-center justify-center">
@@ -348,6 +375,62 @@ export default function ResultsClient({ initialAudit, auditId }: ResultsClientPr
             )}
           </div>
         ) : null}
+
+        {/* Industry Benchmark Card */}
+        <div className="mb-8 p-5 rounded-2xl border border-white/8 bg-[#0d1424]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded bg-teal-400/10 flex items-center justify-center">
+                <BarChart3 className="w-3 h-3 text-teal-400" />
+              </div>
+              <span className="text-xs text-slate-500 uppercase tracking-widest">
+                Industry Benchmark Analysis
+              </span>
+            </div>
+            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${statusColor}`}>
+              {statusText}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/5 text-center">
+              <p className="text-[10px] text-slate-500 uppercase font-medium">Your Per-User Spend</p>
+              <p className="text-xl font-bold text-white mt-1">
+                {formatCurrency(currentPerUserSpend)}
+                <span className="text-xs text-slate-400 font-normal">/mo</span>
+              </p>
+            </div>
+            <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/5 text-center">
+              <p className="text-[10px] text-slate-500 uppercase font-medium">Highly Optimized Target</p>
+              <p className="text-xl font-bold text-teal-400 mt-1">
+                $40
+                <span className="text-xs text-teal-400/70 font-normal">/mo</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Visual Slider Gauge */}
+          <div className="mb-6 relative px-1">
+            <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-teal-400 via-amber-400 to-rose-400 relative">
+              {/* Pointer Marker */}
+              <div 
+                className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-[#060c18] shadow-md shadow-black/50 transition-all duration-500 flex items-center justify-center"
+                style={{ left: `calc(${indicatorPercentage}% - 8px)` }}
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-slate-600 mt-2 font-medium">
+              <span>Lean ($30)</span>
+              <span>Average ($75)</span>
+              <span>Over-provisioned ($120+)</span>
+            </div>
+          </div>
+
+          <p className="text-slate-400 text-xs leading-relaxed">
+            {explanation}
+          </p>
+        </div>
 
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-white mb-4">
